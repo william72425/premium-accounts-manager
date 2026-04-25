@@ -327,4 +327,220 @@ document.getElementById('accountForm')?.addEventListener('submit', (e) => {
     const claimedDate = document.getElementById('claimedDate').value;
     const durationValue = parseInt(document.getElementById('durationValue').value) || 0;
     const durationUnit = document.getElementById('durationUnit').value;
-    const expiredDate = getExpiryDate(claimedDate
+    const expiredDate = getExpiryDate(claimedDate, durationValue, durationUnit);
+    
+    const accountData = {
+        id: editId || Date.now().toString(),
+        productName: productName,
+        email: email,
+        password: document.getElementById('password').value,
+        subscriptionName: document.getElementById('subscriptionName').value,
+        statusTag: document.getElementById('statusTag').value,
+        accountType: document.getElementById('accountType').value,
+        claimedDate: claimedDate,
+        durationValue: durationValue,
+        durationUnit: durationUnit,
+        expiredDate: expiredDate,
+        accountNumber: document.getElementById('accountNumber').value,
+        username: document.getElementById('username').value,
+        note: document.getElementById('note').value,
+        addedTime: editId ? 
+            (accounts.find(a => a.id === editId)?.addedTime || new Date().toLocaleString()) : 
+            new Date().toLocaleString()
+    };
+    
+    if (editId) {
+        const index = accounts.findIndex(a => a.id === editId);
+        if (index !== -1) accounts[index] = accountData;
+        showToast('Account updated successfully!', 'success');
+    } else {
+        accounts.push(accountData);
+        showToast('Account added successfully!', 'success');
+    }
+    
+    saveAccounts();
+    closeModal('accountModal');
+    
+    if (currentProduct && currentProduct === productName) {
+        viewProduct(currentProduct);
+    } else {
+        renderProducts();
+    }
+});
+
+document.getElementById('productForm')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const newProduct = document.getElementById('productName').value.trim();
+    
+    if (!newProduct) {
+        showToast('Please enter a product name', 'error');
+        return;
+    }
+    
+    if (products.includes(newProduct)) {
+        showToast('Product already exists!', 'error');
+        return;
+    }
+    
+    products.push(newProduct);
+    saveProducts();
+    renderProducts();
+    closeModal('productModal');
+    document.getElementById('productForm').reset();
+    showToast(`Product "${newProduct}" created!`, 'success');
+});
+
+// Helper functions
+function updateExpiryInfo() {
+    const claimedDate = document.getElementById('claimedDate').value;
+    const durationValue = parseInt(document.getElementById('durationValue').value);
+    const durationUnit = document.getElementById('durationUnit').value;
+    
+    if (claimedDate && durationValue) {
+        const expiryDate = getExpiryDate(claimedDate, durationValue, durationUnit);
+        const daysLeft = calculateDaysLeft(expiryDate);
+        document.getElementById('expiryInfo').value = `Expires: ${expiryDate} (${daysLeft} days left)`;
+    } else {
+        document.getElementById('expiryInfo').value = 'Enter claimed date and duration';
+    }
+}
+
+function deleteAccount(accountId) {
+    if (confirm('Are you sure you want to delete this account?')) {
+        accounts = accounts.filter(a => a.id !== accountId);
+        saveAccounts();
+        if (currentProduct) viewProduct(currentProduct);
+        else renderProducts();
+        showToast('Account deleted', 'success');
+    }
+}
+
+function deleteProduct(productName) {
+    if (confirm(`Delete "${productName}" and all its accounts? This cannot be undone.`)) {
+        products = products.filter(p => p !== productName);
+        accounts = accounts.filter(a => a.productName !== productName);
+        saveProducts();
+        saveAccounts();
+        renderProducts();
+        if (currentProduct === productName) backToProducts();
+        showToast(`Product "${productName}" deleted`, 'success');
+    }
+}
+
+function backToProducts() {
+    currentProduct = null;
+    document.getElementById('productsView').style.display = 'block';
+    document.getElementById('detailView').style.display = 'none';
+    renderProducts();
+}
+
+function exportData() {
+    const data = {
+        products: products,
+        accounts: accounts,
+        exportDate: new Date().toISOString(),
+        version: '1.0'
+    };
+    
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `premium_vault_backup_${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('Data exported successfully!', 'success');
+}
+
+function importData() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'application/json';
+    input.onchange = (e) => {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                const data = JSON.parse(event.target.result);
+                if (data.products) products = data.products;
+                if (data.accounts) accounts = data.accounts;
+                saveProducts();
+                saveAccounts();
+                renderProducts();
+                showToast('Data imported successfully!', 'success');
+            } catch (err) {
+                showToast('Invalid file format', 'error');
+            }
+        };
+        reader.readAsText(file);
+    };
+    input.click();
+}
+
+function copyToClipboard(text) {
+    if (!text) {
+        showToast('Nothing to copy', 'error');
+        return;
+    }
+    navigator.clipboard.writeText(text);
+    showToast('Copied to clipboard!', 'success');
+}
+
+function showToast(message, type = 'info') {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.style.background = type === 'error' ? '#f44336' : '#4fc3f7';
+    toast.style.color = '#0a0a0f';
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2000);
+}
+
+function openModal(modalId) {
+    document.getElementById(modalId).style.display = 'flex';
+}
+
+function closeModal(modalId) {
+    document.getElementById(modalId).style.display = 'none';
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+    });
+}
+
+function setupEventListeners() {
+    document.getElementById('addProductBtn')?.addEventListener('click', () => openModal('productModal'));
+    document.getElementById('exportBtn')?.addEventListener('click', exportData);
+    document.getElementById('importBtn')?.addEventListener('click', importData);
+    document.getElementById('backBtn')?.addEventListener('click', backToProducts);
+    document.getElementById('creatorLink')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        window.open('tg://resolve?domain=william815');
+    });
+    
+    // Auto-calculate expiry
+    document.getElementById('claimedDate')?.addEventListener('change', updateExpiryInfo);
+    document.getElementById('durationValue')?.addEventListener('input', updateExpiryInfo);
+    document.getElementById('durationUnit')?.addEventListener('change', updateExpiryInfo);
+    
+    window.onclick = (e) => {
+        if (e.target.classList.contains('modal')) e.target.style.display = 'none';
+    };
+}
+
+// Make functions global for HTML onclick
+window.viewProduct = viewProduct;
+window.openAddAccountModal = openAddAccountModal;
+window.deleteProduct = deleteProduct;
+window.deleteAccount = deleteAccount;
+window.editAccount = editAccount;
+window.toggleAccountDetails = toggleAccountDetails;
+window.copyToClipboard = copyToClipboard;
+window.closeModal = closeModal;
+window.renderAccountList = renderAccountList;
+window.backToProducts = backToProducts;
