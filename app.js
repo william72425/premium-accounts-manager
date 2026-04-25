@@ -40,6 +40,10 @@ function loadData() {
             subscriptionName: 'Pro',
             statusTag: 'Free',
             accountType: 'Purchased',
+            method: 'Bin',
+            cardId: '',
+            cardExpiry: '',
+            cardCvc: '',
             claimedDate: new Date().toISOString().split('T')[0],
             durationValue: 30,
             durationUnit: 'days',
@@ -62,13 +66,19 @@ function saveAccounts() {
     localStorage.setItem(STORAGE_KEYS.ACCOUNTS, JSON.stringify(accounts));
 }
 
+// Fixed expiry date calculation - no extra day
 function getExpiryDate(claimedDate, value, unit) {
     if (!claimedDate || !value) return '';
     let date = new Date(claimedDate);
     if (unit === 'days') date.setDate(date.getDate() + value);
     else if (unit === 'weeks') date.setDate(date.getDate() + (value * 7));
     else if (unit === 'months') date.setMonth(date.getMonth() + value);
-    return date.toISOString().split('T')[0];
+    
+    // Return as YYYY-MM-DD without timezone offset issues
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
 }
 
 function calculateDaysLeft(expiredDate) {
@@ -76,6 +86,7 @@ function calculateDaysLeft(expiredDate) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const expire = new Date(expiredDate);
+    expire.setHours(0, 0, 0, 0);
     const diffTime = expire - today;
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return diffDays;
@@ -225,9 +236,11 @@ function renderAccountList() {
         const statusClass = acc.statusTag === 'Free' ? 'badge-success' : 
                            (acc.statusTag === 'Using' ? 'badge-warning' : 'badge-danger');
         
-        // Format added time for display
         const addedDate = new Date(acc.addedTime);
         const timeAgo = getTimeAgo(addedDate);
+        
+        // Show method badge if exists
+        const methodBadge = acc.method ? `<span class="badge badge-method">${acc.method}</span>` : '';
         
         return `
             <div class="account-card">
@@ -242,6 +255,7 @@ function renderAccountList() {
                         <span class="badge ${daysClass}">📅 ${daysLeft} d</span>
                         <span class="badge ${statusClass}">${acc.statusTag}</span>
                         <span class="badge badge-info">${acc.subscriptionName || 'Std'}</span>
+                        ${methodBadge}
                     </div>
                 </div>
                 <div class="account-details" id="details-${acc.id}">
@@ -251,6 +265,10 @@ function renderAccountList() {
                         <button class="btn-mini" onclick="copyToClipboard('${acc.password || ''}')">Copy</button>
                     </div>
                     <div class="details-row"><span class="details-label">👤 Username:</span><span class="details-value">${acc.username || '—'}</span></div>
+                    ${acc.method ? `<div class="details-row"><span class="details-label">💳 Method:</span><span class="details-value">${acc.method}</span></div>` : ''}
+                    ${acc.cardId ? `<div class="details-row"><span class="details-label">💳 Card ID:</span><span class="details-value">${acc.cardId}</span></div>` : ''}
+                    ${acc.cardExpiry ? `<div class="details-row"><span class="details-label">📅 Expiry:</span><span class="details-value">${acc.cardExpiry}</span></div>` : ''}
+                    ${acc.cardCvc ? `<div class="details-row"><span class="details-label">🔐 CVC:</span><span class="details-value">${acc.cardCvc}</span></div>` : ''}
                     <div class="details-row"><span class="details-label">📅 Claimed:</span><span class="details-value">${acc.claimedDate || '—'}</span></div>
                     <div class="details-row"><span class="details-label">⏰ Expires:</span><span class="details-value">${acc.expiredDate || '—'} (${daysLeft} days left)</span></div>
                     <div class="details-row"><span class="details-label">🏷️ Type:</span><span class="details-value">${acc.accountType}</span></div>
@@ -316,6 +334,10 @@ function editAccount(accountId) {
     document.getElementById('subscriptionName').value = acc.subscriptionName || '';
     document.getElementById('statusTag').value = acc.statusTag || 'Free';
     document.getElementById('accountType').value = acc.accountType || 'Trial';
+    document.getElementById('method').value = acc.method || '';
+    document.getElementById('cardId').value = acc.cardId || '';
+    document.getElementById('cardExpiry').value = acc.cardExpiry || '';
+    document.getElementById('cardCvc').value = acc.cardCvc || '';
     document.getElementById('claimedDate').value = acc.claimedDate || '';
     document.getElementById('durationValue').value = acc.durationValue || '';
     document.getElementById('durationUnit').value = acc.durationUnit || 'days';
@@ -380,6 +402,10 @@ document.getElementById('accountForm')?.addEventListener('submit', (e) => {
         subscriptionName: document.getElementById('subscriptionName').value,
         statusTag: document.getElementById('statusTag').value,
         accountType: document.getElementById('accountType').value,
+        method: document.getElementById('method').value,
+        cardId: document.getElementById('cardId').value,
+        cardExpiry: document.getElementById('cardExpiry').value,
+        cardCvc: document.getElementById('cardCvc').value,
         claimedDate: claimedDate,
         durationValue: durationValue,
         durationUnit: durationUnit,
@@ -590,108 +616,141 @@ window.backToProducts = backToProducts;
 window.changeSort = changeSort;
 ```
 
-Updated style.css (Add these new styles at the end)
+Updated index.html (Add the new form fields)
 
-```css
-/* Compact Dashboard */
-.dashboard-compact {
-    background: linear-gradient(135deg, #0f0f1a 0%, #16162a 100%);
-    border-radius: 16px;
-    padding: 16px;
-    margin-bottom: 20px;
-    border: 1px solid rgba(79, 195, 247, 0.2);
-}
+Replace just the form section in your index.html (between the <form id="accountForm"> tags). Here's the complete form section with new fields:
 
-.stats-row {
-    display: flex;
-    justify-content: space-around;
-    flex-wrap: wrap;
-    gap: 12px;
-}
-
-.stat-compact {
-    text-align: center;
-    padding: 8px 12px;
-    background: rgba(79, 195, 247, 0.05);
-    border-radius: 12px;
-    min-width: 60px;
-}
-
-.stat-num {
-    font-size: 20px;
-    font-weight: bold;
-    color: #4fc3f7;
-    display: block;
-}
-
-.stat-name {
-    font-size: 10px;
-    color: #888;
-    display: block;
-    margin-top: 4px;
-}
-
-/* Mini Buttons */
-.btn-mini {
-    background: rgba(79, 195, 247, 0.1);
-    border: none;
-    padding: 4px 10px;
-    border-radius: 8px;
-    cursor: pointer;
-    color: #4fc3f7;
-    font-size: 11px;
-    transition: all 0.2s;
-}
-
-.btn-mini:hover {
-    background: rgba(79, 195, 247, 0.2);
-}
-
-.btn-primary-mini {
-    background: rgba(79, 195, 247, 0.2);
-    color: #4fc3f7;
-}
-
-.btn-danger-mini {
-    background: rgba(244, 67, 54, 0.2);
-    color: #ff5252;
-}
-
-.btn-danger-mini:hover {
-    background: rgba(244, 67, 54, 0.3);
-}
-
-/* Sort dropdown */
-.filter-bar select#sortOrder {
-    min-width: 130px;
-}
-
-/* Product stats on main page - smaller */
-.product-stats .stat-badge {
-    font-size: 12px;
-    padding: 3px 8px;
-}
-
-/* Responsive adjustments */
-@media (max-width: 600px) {
-    .stats-row {
-        gap: 8px;
-    }
+```html
+<form id="accountForm">
+    <input type="hidden" id="editAccountId">
     
-    .stat-compact {
-        padding: 6px 10px;
-        min-width: 50px;
-    }
-    
-    .stat-num {
-        font-size: 16px;
-    }
-    
-    .stat-name {
-        font-size: 9px;
-    }
-    
-    .filter-bar select#sortOrder {
-        min-width: 110px;
-    }
-    }
+    <div class="form-row">
+        <div class="form-group">
+            <label>Product Name *</label>
+            <select id="productSelect" required>
+                <option value="">-- Select Product --</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Or Add New Product</label>
+            <input type="text" id="newProductInput" placeholder="Enter new product name">
+        </div>
+    </div>
+
+    <div class="form-row">
+        <div class="form-group">
+            <label>Email *</label>
+            <input type="email" id="email" required placeholder="user@example.com">
+        </div>
+        <div class="form-group">
+            <label>Password</label>
+            <input type="text" id="password" placeholder="••••••••">
+        </div>
+    </div>
+
+    <div class="form-row">
+        <div class="form-group">
+            <label>Subscription Plan</label>
+            <input type="text" id="subscriptionName" placeholder="Pro / Premium / Standard">
+        </div>
+        <div class="form-group">
+            <label>Account Number</label>
+            <input type="text" id="accountNumber" placeholder="Optional">
+        </div>
+    </div>
+
+    <!-- NEW: Method Section -->
+    <div class="form-row">
+        <div class="form-group">
+            <label>Method</label>
+            <select id="method">
+                <option value="">-- Select Method (Optional) --</option>
+                <option value="Bin">Bin</option>
+                <option value="Shopify card">Shopify card</option>
+                <option value="Custom">Custom</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Custom Method Tag</label>
+            <input type="text" id="customMethod" placeholder="Or enter custom method">
+        </div>
+    </div>
+
+    <!-- NEW: Card Details Section -->
+    <div class="form-group">
+        <label>💳 Card Details (Optional)</label>
+    </div>
+    <div class="form-row">
+        <div class="form-group">
+            <label>Card ID</label>
+            <input type="text" id="cardId" placeholder="Long card number">
+        </div>
+        <div class="form-group">
+            <label>Expiry (MM/YY)</label>
+            <input type="text" id="cardExpiry" placeholder="01/26">
+        </div>
+        <div class="form-group">
+            <label>CVC</label>
+            <input type="text" id="cardCvc" placeholder="123">
+        </div>
+    </div>
+
+    <div class="form-row">
+        <div class="form-group">
+            <label>Status Tag</label>
+            <select id="statusTag">
+                <option value="Free">🟢 Free</option>
+                <option value="Using">🔵 Using</option>
+                <option value="Sold">🔴 Sold</option>
+                <option value="Gave someone">🎁 Gave someone</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Account Type</label>
+            <select id="accountType">
+                <option value="Trial">Trial</option>
+                <option value="Hitter">Hitter</option>
+                <option value="Purchased">Purchased</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="form-row">
+        <div class="form-group">
+            <label>Claimed Date</label>
+            <input type="date" id="claimedDate">
+        </div>
+        <div class="form-group">
+            <label>Duration</label>
+            <div class="duration-group">
+                <input type="number" id="durationValue" placeholder="Number" style="width: 60%;">
+                <select id="durationUnit" style="width: 38%;">
+                    <option value="days">Days</option>
+                    <option value="weeks">Weeks</option>
+                    <option value="months">Months</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-row">
+        <div class="form-group">
+            <label>Username</label>
+            <input type="text" id="username" placeholder="Optional">
+        </div>
+        <div class="form-group">
+            <label>Expiry Info</label>
+            <input type="text" id="expiryInfo" readonly placeholder="Auto-calculated">
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>Notes</label>
+        <textarea id="note" rows="3" placeholder="Any additional information..."></textarea>
+    </div>
+
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary">💾 Save Account</button>
+        <button type="button" class="btn btn-secondary" onclick="closeModal('accountModal')">Cancel</button>
+    </div>
+</form>
