@@ -8,6 +8,7 @@ const STORAGE_KEYS = {
 let products = [];
 let accounts = [];
 let currentProduct = null;
+let currentSort = 'newest'; // newest, oldest
 
 // Initialize app
 document.addEventListener('DOMContentLoaded', () => {
@@ -80,6 +81,16 @@ function calculateDaysLeft(expiredDate) {
     return diffDays;
 }
 
+// Sort accounts
+function sortAccounts(accountsList, sortType) {
+    const sorted = [...accountsList];
+    if (sortType === 'newest') {
+        return sorted.sort((a, b) => new Date(b.addedTime) - new Date(a.addedTime));
+    } else {
+        return sorted.sort((a, b) => new Date(a.addedTime) - new Date(b.addedTime));
+    }
+}
+
 // Render products grid
 function renderProducts() {
     const grid = document.getElementById('productsGrid');
@@ -106,9 +117,9 @@ function renderProducts() {
             <div class="product-card" onclick="viewProduct('${escapeHtml(product)}')">
                 <div class="product-name">🎬 ${escapeHtml(product)}</div>
                 <div class="product-stats">
-                    <span class="stat-badge">📊 Total: ${total}</span>
-                    <span class="stat-badge">🟢 Free: ${free}</span>
-                    <span class="stat-badge">🔵 Using: ${using}</span>
+                    <span class="stat-badge">📊 ${total}</span>
+                    <span class="stat-badge">🟢 ${free}</span>
+                    <span class="stat-badge">🔵 ${using}</span>
                 </div>
                 <div class="product-actions" onclick="event.stopPropagation()">
                     <button class="btn btn-outline" onclick="openAddAccountModal('${escapeHtml(product)}')">+ Add Account</button>
@@ -137,15 +148,16 @@ function viewProduct(productName) {
         return days > 0 && days <= 7;
     }).length;
     
+    // Compact dashboard
     const dashboard = `
-        <div class="dashboard">
-            <div class="stats-grid">
-                <div class="stat-card"><div class="stat-number">${total}</div><div class="stat-label">Total</div></div>
-                <div class="stat-card"><div class="stat-number">${free}</div><div class="stat-label">Free</div></div>
-                <div class="stat-card"><div class="stat-number">${using}</div><div class="stat-label">Using</div></div>
-                <div class="stat-card"><div class="stat-number">${sold}</div><div class="stat-label">Sold</div></div>
-                <div class="stat-card"><div class="stat-number">${expired}</div><div class="stat-label">Expired</div></div>
-                <div class="stat-card"><div class="stat-number">${expiringSoon}</div><div class="stat-label">⚠️ Expiring Soon</div></div>
+        <div class="dashboard-compact">
+            <div class="stats-row">
+                <div class="stat-compact"><span class="stat-num">${total}</span> <span class="stat-name">Total</span></div>
+                <div class="stat-compact"><span class="stat-num">${free}</span> <span class="stat-name">Free</span></div>
+                <div class="stat-compact"><span class="stat-num">${using}</span> <span class="stat-name">Using</span></div>
+                <div class="stat-compact"><span class="stat-num">${sold}</span> <span class="stat-name">Sold</span></div>
+                <div class="stat-compact"><span class="stat-num">${expired}</span> <span class="stat-name">Expired</span></div>
+                <div class="stat-compact"><span class="stat-num">${expiringSoon}</span> <span class="stat-name">⚠️ Soon</span></div>
             </div>
         </div>
         <div class="filter-bar">
@@ -162,13 +174,22 @@ function viewProduct(productName) {
                 <option value="Hitter">Hitter</option>
                 <option value="Purchased">Purchased</option>
             </select>
-            <input type="text" id="searchEmail" placeholder="🔍 Search by email..." onkeyup="renderAccountList()">
-            <button class="btn btn-primary" onclick="openAddAccountModal('${productName}')">+ Add Account</button>
+            <select id="sortOrder" onchange="changeSort()">
+                <option value="newest">📅 Newest First</option>
+                <option value="oldest">📅 Oldest First</option>
+            </select>
+            <input type="text" id="searchEmail" placeholder="🔍 Search email..." onkeyup="renderAccountList()">
+            <button class="btn btn-primary" onclick="openAddAccountModal('${productName}')">+ Add</button>
         </div>
         <div id="accountsList"></div>
     `;
     
     document.getElementById('detailContent').innerHTML = dashboard;
+    renderAccountList();
+}
+
+function changeSort() {
+    currentSort = document.getElementById('sortOrder')?.value || 'newest';
     renderAccountList();
 }
 
@@ -184,6 +205,9 @@ function renderAccountList() {
     if (statusFilter) filtered = filtered.filter(acc => acc.statusTag === statusFilter);
     if (typeFilter) filtered = filtered.filter(acc => acc.accountType === typeFilter);
     if (search) filtered = filtered.filter(acc => acc.email.toLowerCase().includes(search));
+    
+    // Apply sorting
+    filtered = sortAccounts(filtered, currentSort);
     
     const container = document.getElementById('accountsList');
     
@@ -201,40 +225,59 @@ function renderAccountList() {
         const statusClass = acc.statusTag === 'Free' ? 'badge-success' : 
                            (acc.statusTag === 'Using' ? 'badge-warning' : 'badge-danger');
         
+        // Format added time for display
+        const addedDate = new Date(acc.addedTime);
+        const timeAgo = getTimeAgo(addedDate);
+        
         return `
             <div class="account-card">
                 <div class="account-header" onclick="toggleAccountDetails('${acc.id}')">
                     <div>
                         <div class="account-email">📧 ${escapeHtml(acc.email)}</div>
-                        <div style="font-size: 11px; color: #666; margin-top: 4px;">#${acc.accountNumber || 'No number'}</div>
+                        <div style="font-size: 11px; color: #666; margin-top: 4px;">
+                            #${acc.accountNumber || 'No number'} • Added ${timeAgo}
+                        </div>
                     </div>
                     <div class="account-badges">
-                        <span class="badge ${daysClass}">📅 ${daysLeft} days left</span>
+                        <span class="badge ${daysClass}">📅 ${daysLeft} d</span>
                         <span class="badge ${statusClass}">${acc.statusTag}</span>
-                        <span class="badge badge-info">${acc.subscriptionName || 'Standard'}</span>
+                        <span class="badge badge-info">${acc.subscriptionName || 'Std'}</span>
                     </div>
                 </div>
                 <div class="account-details" id="details-${acc.id}">
                     <div class="details-row">
                         <span class="details-label">🔑 Password:</span>
                         <span class="details-value">${acc.password || '••••••••'}</span>
-                        <button class="btn btn-outline" style="padding: 4px 8px; font-size: 11px;" onclick="copyToClipboard('${acc.password || ''}')">Copy</button>
+                        <button class="btn-mini" onclick="copyToClipboard('${acc.password || ''}')">Copy</button>
                     </div>
                     <div class="details-row"><span class="details-label">👤 Username:</span><span class="details-value">${acc.username || '—'}</span></div>
                     <div class="details-row"><span class="details-label">📅 Claimed:</span><span class="details-value">${acc.claimedDate || '—'}</span></div>
                     <div class="details-row"><span class="details-label">⏰ Expires:</span><span class="details-value">${acc.expiredDate || '—'} (${daysLeft} days left)</span></div>
                     <div class="details-row"><span class="details-label">🏷️ Type:</span><span class="details-value">${acc.accountType}</span></div>
                     <div class="details-row"><span class="details-label">📝 Note:</span><span class="details-value">${acc.note || '—'}</span></div>
+                    <div class="details-row"><span class="details-label">🕐 Added:</span><span class="details-value">${acc.addedTime || '—'}</span></div>
                     <div class="details-actions">
-                        <button class="btn btn-outline" onclick="editAccount('${acc.id}')">✏️ Edit</button>
-                        <button class="btn btn-outline" onclick="copyToClipboard('${acc.email}')">📧 Copy Email</button>
-                        <button class="btn btn-outline" onclick="copyToClipboard('${acc.password || ''}')">🔑 Copy Password</button>
-                        <button class="btn btn-danger" onclick="deleteAccount('${acc.id}')">🗑️ Delete</button>
+                        <button class="btn-mini btn-primary-mini" onclick="editAccount('${acc.id}')">✏️ Edit</button>
+                        <button class="btn-mini" onclick="copyToClipboard('${acc.email}')">📧 Copy Email</button>
+                        <button class="btn-mini" onclick="copyToClipboard('${acc.password || ''}')">🔑 Copy PW</button>
+                        <button class="btn-mini btn-danger-mini" onclick="deleteAccount('${acc.id}')">🗑️ Delete</button>
                     </div>
                 </div>
             </div>
         `;
     }).join('');
+}
+
+function getTimeAgo(date) {
+    const seconds = Math.floor((new Date() - date) / 1000);
+    if (seconds < 60) return 'just now';
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    if (days < 7) return `${days}d ago`;
+    return date.toLocaleDateString();
 }
 
 function toggleAccountDetails(id) {
@@ -544,3 +587,111 @@ window.copyToClipboard = copyToClipboard;
 window.closeModal = closeModal;
 window.renderAccountList = renderAccountList;
 window.backToProducts = backToProducts;
+window.changeSort = changeSort;
+```
+
+Updated style.css (Add these new styles at the end)
+
+```css
+/* Compact Dashboard */
+.dashboard-compact {
+    background: linear-gradient(135deg, #0f0f1a 0%, #16162a 100%);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(79, 195, 247, 0.2);
+}
+
+.stats-row {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.stat-compact {
+    text-align: center;
+    padding: 8px 12px;
+    background: rgba(79, 195, 247, 0.05);
+    border-radius: 12px;
+    min-width: 60px;
+}
+
+.stat-num {
+    font-size: 20px;
+    font-weight: bold;
+    color: #4fc3f7;
+    display: block;
+}
+
+.stat-name {
+    font-size: 10px;
+    color: #888;
+    display: block;
+    margin-top: 4px;
+}
+
+/* Mini Buttons */
+.btn-mini {
+    background: rgba(79, 195, 247, 0.1);
+    border: none;
+    padding: 4px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    color: #4fc3f7;
+    font-size: 11px;
+    transition: all 0.2s;
+}
+
+.btn-mini:hover {
+    background: rgba(79, 195, 247, 0.2);
+}
+
+.btn-primary-mini {
+    background: rgba(79, 195, 247, 0.2);
+    color: #4fc3f7;
+}
+
+.btn-danger-mini {
+    background: rgba(244, 67, 54, 0.2);
+    color: #ff5252;
+}
+
+.btn-danger-mini:hover {
+    background: rgba(244, 67, 54, 0.3);
+}
+
+/* Sort dropdown */
+.filter-bar select#sortOrder {
+    min-width: 130px;
+}
+
+/* Product stats on main page - smaller */
+.product-stats .stat-badge {
+    font-size: 12px;
+    padding: 3px 8px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+    .stats-row {
+        gap: 8px;
+    }
+    
+    .stat-compact {
+        padding: 6px 10px;
+        min-width: 50px;
+    }
+    
+    .stat-num {
+        font-size: 16px;
+    }
+    
+    .stat-name {
+        font-size: 9px;
+    }
+    
+    .filter-bar select#sortOrder {
+        min-width: 110px;
+    }
+    }
