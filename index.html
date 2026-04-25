@@ -6,8 +6,563 @@
     <meta name="theme-color" content="#0a0a0f">
     <meta name="description" content="Premium Accounts Manager - Track all your premium accounts">
     <title>Premium Vault | Account Manager</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="manifest" href="manifest.json">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: linear-gradient(135deg, #0a0a0f 0%, #0f0f1a 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+
+        .app {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        .header {
+            background: rgba(18, 18, 27, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(79, 195, 247, 0.2);
+            position: sticky;
+            top: 20px;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .logo h1 {
+            background: linear-gradient(135deg, #4fc3f7, #7c4dff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-size: 24px;
+        }
+
+        .logo p {
+            font-size: 12px;
+            color: #888;
+            margin-top: 4px;
+        }
+
+        .logo a {
+            color: #4fc3f7;
+            text-decoration: none;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4fc3f7, #7c4dff);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(79, 195, 247, 0.3);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid rgba(79, 195, 247, 0.5);
+            color: #4fc3f7;
+        }
+
+        .btn-outline:hover {
+            background: rgba(79, 195, 247, 0.1);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #e0e0e0;
+        }
+
+        .btn-danger {
+            background: rgba(244, 67, 54, 0.2);
+            border: 1px solid rgba(244, 67, 54, 0.5);
+            color: #ff5252;
+        }
+
+        .btn-back {
+            background: rgba(79, 195, 247, 0.2);
+            color: #4fc3f7;
+            padding: 8px 16px;
+        }
+
+        /* Products Grid */
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .product-card {
+            background: linear-gradient(135deg, #0f0f1a 0%, #16162a 100%);
+            border-radius: 20px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 1px solid rgba(79, 195, 247, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .product-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #4fc3f7, #7c4dff);
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            border-color: #4fc3f7;
+            box-shadow: 0 10px 40px rgba(79, 195, 247, 0.2);
+        }
+
+        .product-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 12px;
+            color: #4fc3f7;
+        }
+
+        .product-stats {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            font-size: 13px;
+        }
+
+        .stat-badge {
+            background: rgba(79, 195, 247, 0.1);
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+
+        .product-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* Compact Dashboard */
+        .dashboard-compact {
+            background: linear-gradient(135deg, #0f0f1a 0%, #16162a 100%);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(79, 195, 247, 0.2);
+        }
+
+        .stats-row {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .stat-compact {
+            text-align: center;
+            padding: 8px 12px;
+            background: rgba(79, 195, 247, 0.05);
+            border-radius: 12px;
+            min-width: 60px;
+        }
+
+        .stat-num {
+            font-size: 20px;
+            font-weight: bold;
+            color: #4fc3f7;
+            display: block;
+        }
+
+        .stat-name {
+            font-size: 10px;
+            color: #888;
+            display: block;
+            margin-top: 4px;
+        }
+
+        /* Filter Bar */
+        .filter-bar {
+            background: #0f0f1a;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 24px;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+            border: 1px solid rgba(79, 195, 247, 0.15);
+        }
+
+        .filter-bar select, .filter-bar input {
+            padding: 10px 12px;
+            background: #1a1a2e;
+            border: 1px solid rgba(79, 195, 247, 0.2);
+            border-radius: 10px;
+            color: #e0e0e0;
+            font-size: 13px;
+        }
+
+        .filter-bar input {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .filter-bar select {
+            min-width: 120px;
+        }
+
+        /* Account Cards */
+        .account-card {
+            background: #0f0f1a;
+            border-radius: 16px;
+            margin-bottom: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(79, 195, 247, 0.15);
+        }
+
+        .account-header {
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .account-header:hover {
+            background: rgba(79, 195, 247, 0.05);
+        }
+
+        .account-email {
+            font-weight: 600;
+            color: #4fc3f7;
+            font-size: 14px;
+            word-break: break-all;
+        }
+
+        .account-badges {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background: rgba(76, 175, 80, 0.2);
+            color: #4caf50;
+            border: 1px solid #4caf50;
+        }
+
+        .badge-warning {
+            background: rgba(255, 152, 0, 0.2);
+            color: #ff9800;
+            border: 1px solid #ff9800;
+        }
+
+        .badge-danger {
+            background: rgba(244, 67, 54, 0.2);
+            color: #f44336;
+            border: 1px solid #f44336;
+        }
+
+        .badge-info {
+            background: rgba(79, 195, 247, 0.2);
+            color: #4fc3f7;
+            border: 1px solid #4fc3f7;
+        }
+
+        .badge-method {
+            background: rgba(156, 39, 176, 0.2);
+            color: #ce93d8;
+            border: 1px solid #ce93d8;
+        }
+
+        .account-details {
+            padding: 0 16px 16px 16px;
+            display: none;
+            border-top: 1px solid rgba(79, 195, 247, 0.1);
+        }
+
+        .account-details.active {
+            display: block;
+        }
+
+        .details-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 13px;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .details-label {
+            color: #888;
+            font-weight: 500;
+        }
+
+        .details-value {
+            color: #e0e0e0;
+            word-break: break-all;
+            flex: 1;
+            text-align: right;
+        }
+
+        .details-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+        }
+
+        /* Mini Buttons */
+        .btn-mini {
+            background: rgba(79, 195, 247, 0.1);
+            border: none;
+            padding: 4px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            color: #4fc3f7;
+            font-size: 11px;
+            transition: all 0.2s;
+        }
+
+        .btn-mini:hover {
+            background: rgba(79, 195, 247, 0.2);
+        }
+
+        .btn-primary-mini {
+            background: rgba(79, 195, 247, 0.2);
+            color: #4fc3f7;
+        }
+
+        .btn-danger-mini {
+            background: rgba(244, 67, 54, 0.2);
+            color: #ff5252;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 1000;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .modal-content {
+            max-width: 800px;
+            margin: 40px auto;
+            background: #0f0f1a;
+            border-radius: 24px;
+            border: 1px solid rgba(79, 195, 247, 0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 24px;
+            border-bottom: 1px solid rgba(79, 195, 247, 0.1);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #888;
+        }
+
+        form {
+            padding: 24px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 13px;
+            color: #4fc3f7;
+            font-weight: 500;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            background: #1a1a2e;
+            border: 1px solid rgba(79, 195, 247, 0.2);
+            border-radius: 12px;
+            color: #e0e0e0;
+            font-size: 14px;
+        }
+
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #4fc3f7;
+        }
+
+        .duration-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 24px;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            background: #0f0f1a;
+            border-radius: 20px;
+            border: 1px dashed rgba(79, 195, 247, 0.3);
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #4fc3f7;
+            color: #0a0a0f;
+            padding: 12px 24px;
+            border-radius: 40px;
+            font-weight: 600;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            z-index: 2000;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .app {
+                padding: 12px;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 0;
+            }
+            
+            .stats-row {
+                gap: 8px;
+            }
+            
+            .stat-compact {
+                padding: 6px 10px;
+                min-width: 50px;
+            }
+            
+            .stat-num {
+                font-size: 16px;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .filter-bar {
+                flex-direction: column;
+            }
+            
+            .filter-bar select, .filter-bar input {
+                width: 100%;
+            }
+            
+            .details-row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .details-value {
+                text-align: left;
+                width: 100%;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="app">
@@ -43,9 +598,9 @@
 
             <!-- Product Detail View -->
             <div id="detailView" class="detail-view" style="display: none;">
-                <div class="detail-header">
+                <div class="detail-header" style="margin-bottom: 20px;">
                     <button class="btn btn-back" id="backBtn">← Back to Products</button>
-                    <h2 id="detailTitle"></h2>
+                    <h2 id="detailTitle" style="margin-top: 16px; color: #4fc3f7;"></h2>
                 </div>
                 <div id="detailContent"></div>
             </div>
@@ -218,6 +773,615 @@
     <!-- Toast Notification -->
     <div id="toast" class="toast"></div>
 
-    <script src="app.js"></script>
+    <script>
+        // Storage keys
+        const STORAGE_KEYS = {
+            PRODUCTS: 'premium_vault_products',
+            ACCOUNTS: 'premium_vault_accounts'
+        };
+
+        // Global state
+        let products = [];
+        let accounts = [];
+        let currentProduct = null;
+        let currentSort = 'newest';
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', () => {
+            loadData();
+            renderProducts();
+            setupEventListeners();
+            showToast('Welcome to Premium Vault!', 'success');
+        });
+
+        function loadData() {
+            const storedProducts = localStorage.getItem(STORAGE_KEYS.PRODUCTS);
+            const storedAccounts = localStorage.getItem(STORAGE_KEYS.ACCOUNTS);
+            
+            products = storedProducts ? JSON.parse(storedProducts) : [];
+            accounts = storedAccounts ? JSON.parse(storedAccounts) : [];
+            
+            if (products.length === 0 && accounts.length === 0) {
+                products = ['Capcut', 'Netflix', 'Spotify'];
+                saveProducts();
+                
+                const sampleAccount = {
+                    id: Date.now().toString(),
+                    productName: 'Capcut',
+                    email: 'sample@example.com',
+                    password: 'sample123',
+                    subscriptionName: 'Pro',
+                    statusTag: 'Free',
+                    accountType: 'Purchased',
+                    method: '',
+                    cardId: '',
+                    cardExpiry: '',
+                    cardCvc: '',
+                    claimedDate: new Date().toISOString().split('T')[0],
+                    durationValue: 30,
+                    durationUnit: 'days',
+                    expiredDate: getExpiryDate(new Date().toISOString().split('T')[0], 30, 'days'),
+                    accountNumber: '001',
+                    username: 'sample_user',
+                    note: 'Sample account',
+                    addedTime: new Date().toLocaleString()
+                };
+                accounts.push(sampleAccount);
+                saveAccounts();
+            }
+        }
+
+        function saveProducts() {
+            localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products));
+        }
+
+        function saveAccounts() {
+            localStorage.setItem(STORAGE_KEYS.ACCOUNTS, JSON.stringify(accounts));
+        }
+
+        function getExpiryDate(claimedDate, value, unit) {
+            if (!claimedDate || !value) return '';
+            let date = new Date(claimedDate);
+            if (unit === 'days') date.setDate(date.getDate() + value);
+            else if (unit === 'weeks') date.setDate(date.getDate() + (value * 7));
+            else if (unit === 'months') date.setMonth(date.getMonth() + value);
+            
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function calculateDaysLeft(expiredDate) {
+            if (!expiredDate) return '∞';
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const expire = new Date(expiredDate);
+            expire.setHours(0, 0, 0, 0);
+            const diffTime = expire - today;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            return diffDays;
+        }
+
+        function sortAccounts(accountsList, sortType) {
+            const sorted = [...accountsList];
+            if (sortType === 'newest') {
+                return sorted.sort((a, b) => new Date(b.addedTime) - new Date(a.addedTime));
+            } else {
+                return sorted.sort((a, b) => new Date(a.addedTime) - new Date(b.addedTime));
+            }
+        }
+
+        function renderProducts() {
+            const grid = document.getElementById('productsGrid');
+            if (!grid) return;
+            
+            if (products.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📦</div>
+                        <h3>No Products Yet</h3>
+                        <p>Click "New Product" to get started</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            grid.innerHTML = products.map(product => {
+                const productAccounts = accounts.filter(acc => acc.productName === product);
+                const total = productAccounts.length;
+                const free = productAccounts.filter(acc => acc.statusTag === 'Free').length;
+                const using = productAccounts.filter(acc => acc.statusTag === 'Using').length;
+                
+                return `
+                    <div class="product-card" onclick="viewProduct('${escapeHtml(product)}')">
+                        <div class="product-name">🎬 ${escapeHtml(product)}</div>
+                        <div class="product-stats">
+                            <span class="stat-badge">📊 ${total}</span>
+                            <span class="stat-badge">🟢 ${free}</span>
+                            <span class="stat-badge">🔵 ${using}</span>
+                        </div>
+                        <div class="product-actions" onclick="event.stopPropagation()">
+                            <button class="btn btn-outline" onclick="openAddAccountModal('${escapeHtml(product)}')">+ Add Account</button>
+                            <button class="btn btn-danger" onclick="deleteProduct('${escapeHtml(product)}')">Delete</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function viewProduct(productName) {
+            currentProduct = productName;
+            document.getElementById('productsView').style.display = 'none';
+            document.getElementById('detailView').style.display = 'block';
+            document.getElementById('detailTitle').innerHTML = `📱 ${escapeHtml(productName)}`;
+            
+            const productAccounts = accounts.filter(acc => acc.productName === productName);
+            const total = productAccounts.length;
+            const free = productAccounts.filter(acc => acc.statusTag === 'Free').length;
+            const using = productAccounts.filter(acc => acc.statusTag === 'Using').length;
+            const sold = productAccounts.filter(acc => acc.statusTag === 'Sold').length;
+            const expired = productAccounts.filter(acc => calculateDaysLeft(acc.expiredDate) <= 0).length;
+            const expiringSoon = productAccounts.filter(acc => {
+                const days = calculateDaysLeft(acc.expiredDate);
+                return days > 0 && days <= 7;
+            }).length;
+            
+            const dashboard = `
+                <div class="dashboard-compact">
+                    <div class="stats-row">
+                        <div class="stat-compact"><span class="stat-num">${total}</span> <span class="stat-name">Total</span></div>
+                        <div class="stat-compact"><span class="stat-num">${free}</span> <span class="stat-name">Free</span></div>
+                        <div class="stat-compact"><span class="stat-num">${using}</span> <span class="stat-name">Using</span></div>
+                        <div class="stat-compact"><span class="stat-num">${sold}</span> <span class="stat-name">Sold</span></div>
+                        <div class="stat-compact"><span class="stat-num">${expired}</span> <span class="stat-name">Expired</span></div>
+                        <div class="stat-compact"><span class="stat-num">${expiringSoon}</span> <span class="stat-name">⚠️ Soon</span></div>
+                    </div>
+                </div>
+                <div class="filter-bar">
+                    <select id="filterStatus" onchange="renderAccountList()">
+                        <option value="">All Status</option>
+                        <option value="Free">🟢 Free</option>
+                        <option value="Using">🔵 Using</option>
+                        <option value="Sold">🔴 Sold</option>
+                        <option value="Gave someone">🎁 Gave someone</option>
+                    </select>
+                    <select id="filterType" onchange="renderAccountList()">
+                        <option value="">All Types</option>
+                        <option value="Trial">Trial</option>
+                        <option value="Hitter">Hitter</option>
+                        <option value="Purchased">Purchased</option>
+                    </select>
+                    <select id="sortOrder" onchange="changeSort()">
+                        <option value="newest">📅 Newest First</option>
+                        <option value="oldest">📅 Oldest First</option>
+                    </select>
+                    <input type="text" id="searchEmail" placeholder="🔍 Search email..." onkeyup="renderAccountList()">
+                    <button class="btn btn-primary" onclick="openAddAccountModal('${productName}')">+ Add</button>
+                </div>
+                <div id="accountsList"></div>
+            `;
+            
+            document.getElementById('detailContent').innerHTML = dashboard;
+            renderAccountList();
+        }
+
+        function changeSort() {
+            currentSort = document.getElementById('sortOrder')?.value || 'newest';
+            renderAccountList();
+        }
+
+        function renderAccountList() {
+            if (!currentProduct) return;
+            
+            let filtered = accounts.filter(acc => acc.productName === currentProduct);
+            
+            const statusFilter = document.getElementById('filterStatus')?.value;
+            const typeFilter = document.getElementById('filterType')?.value;
+            const search = document.getElementById('searchEmail')?.value.toLowerCase();
+            
+            if (statusFilter) filtered = filtered.filter(acc => acc.statusTag === statusFilter);
+            if (typeFilter) filtered = filtered.filter(acc => acc.accountType === typeFilter);
+            if (search) filtered = filtered.filter(acc => acc.email.toLowerCase().includes(search));
+            
+            filtered = sortAccounts(filtered, currentSort);
+            
+            const container = document.getElementById('accountsList');
+            
+            if (filtered.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="empty-icon">🔍</div><p>No accounts found</p></div>';
+                return;
+            }
+            
+            container.innerHTML = filtered.map(acc => {
+                const daysLeft = calculateDaysLeft(acc.expiredDate);
+                let daysClass = 'badge-success';
+                if (daysLeft <= 0) daysClass = 'badge-danger';
+                else if (daysLeft <= 7) daysClass = 'badge-warning';
+                
+                const statusClass = acc.statusTag === 'Free' ? 'badge-success' : 
+                                   (acc.statusTag === 'Using' ? 'badge-warning' : 'badge-danger');
+                
+                const addedDate = new Date(acc.addedTime);
+                const timeAgo = getTimeAgo(addedDate);
+                
+                const finalMethod = acc.method === 'Custom' && acc.customMethod ? acc.customMethod : acc.method;
+                const methodBadge = finalMethod ? `<span class="badge badge-method">${escapeHtml(finalMethod)}</span>` : '';
+                
+                return `
+                    <div class="account-card">
+                        <div class="account-header" onclick="toggleAccountDetails('${acc.id}')">
+                            <div>
+                                <div class="account-email">📧 ${escapeHtml(acc.email)}</div>
+                                <div style="font-size: 11px; color: #666; margin-top: 4px;">
+                                    #${acc.accountNumber || 'No number'} • Added ${timeAgo}
+                                </div>
+                            </div>
+                            <div class="account-badges">
+                                <span class="badge ${daysClass}">📅 ${daysLeft} d</span>
+                                <span class="badge ${statusClass}">${acc.statusTag}</span>
+                                <span class="badge badge-info">${acc.subscriptionName || 'Std'}</span>
+                                ${methodBadge}
+                            </div>
+                        </div>
+                        <div class="account-details" id="details-${acc.id}">
+                            <div class="details-row">
+                                <span class="details-label">🔑 Password:</span>
+                                <span class="details-value">${acc.password || '••••••••'}</span>
+                                <button class="btn-mini" onclick="copyToClipboard('${acc.password || ''}')">Copy</button>
+                            </div>
+                            <div class="details-row"><span class="details-label">👤 Username:</span><span class="details-value">${acc.username || '—'}</span></div>
+                            ${finalMethod ? `<div class="details-row"><span class="details-label">💳 Method:</span><span class="details-value">${escapeHtml(finalMethod)}</span></div>` : ''}
+                            ${acc.cardId ? `<div class="details-row"><span class="details-label">💳 Card ID:</span><span class="details-value">${escapeHtml(acc.cardId)}</span></div>` : ''}
+                            ${acc.cardExpiry ? `<div class="details-row"><span class="details-label">📅 Expiry:</span><span class="details-value">${escapeHtml(acc.cardExpiry)}</span></div>` : ''}
+                            ${acc.cardCvc ? `<div class="details-row"><span class="details-label">🔐 CVC:</span><span class="details-value">${escapeHtml(acc.cardCvc)}</span></div>` : ''}
+                            <div class="details-row"><span class="details-label">📅 Claimed:</span><span class="details-value">${acc.claimedDate || '—'}</span></div>
+                            <div class="details-row"><span class="details-label">⏰ Expires:</span><span class="details-value">${acc.expiredDate || '—'} (${daysLeft} days left)</span></div>
+                            <div class="details-row"><span class="details-label">🏷️ Type:</span><span class="details-value">${acc.accountType}</span></div>
+                            <div class="details-row"><span class="details-label">📝 Note:</span><span class="details-value">${acc.note || '—'}</span></div>
+                            <div class="details-row"><span class="details-label">🕐 Added:</span><span class="details-value">${acc.addedTime || '—'}</span></div>
+                            <div class="details-actions">
+                                <button class="btn-mini btn-primary-mini" onclick="editAccount('${acc.id}')">✏️ Edit</button>
+                                <button class="btn-mini" onclick="copyToClipboard('${acc.email}')">📧 Copy Email</button>
+                                <button class="btn-mini" onclick="copyToClipboard('${acc.password || ''}')">🔑 Copy PW</button>
+                                <button class="btn-mini btn-danger-mini" onclick="deleteAccount('${acc.id}')">🗑️ Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function getTimeAgo(date) {
+            const seconds = Math.floor((new Date() - date) / 1000);
+            if (seconds < 60) return 'just now';
+            const minutes = Math.floor(seconds / 60);
+            if (minutes < 60) return `${minutes}m ago`;
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return `${hours}h ago`;
+            const days = Math.floor(hours / 24);
+            if (days < 7) return `${days}d ago`;
+            return date.toLocaleDateString();
+        }
+
+        function toggleAccountDetails(id) {
+            const details = document.getElementById(`details-${id}`);
+            if (details) details.classList.toggle('active');
+        }
+
+        function openAddAccountModal(productName = null) {
+            const select = document.getElementById('productSelect');
+            select.innerHTML = '<option value="">-- Select Product --</option>' + 
+                products.map(p => `<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`).join('');
+            
+            if (productName) select.value = productName;
+            
+            document.getElementById('accountForm').reset();
+            document.getElementById('editAccountId').value = '';
+            document.getElementById('modalTitle').innerText = 'Add New Account';
+            document.getElementById('claimedDate').value = new Date().toISOString().split('T')[0];
+            
+            openModal('accountModal');
+        }
+
+        function editAccount(accountId) {
+            const acc = accounts.find(a => a.id === accountId);
+            if (!acc) return;
+            
+            const select = document.getElementById('productSelect');
+            select.innerHTML = '<option value="">-- Select Product --</option>' + 
+                products.map(p => `<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`).join('');
+            
+            document.getElementById('editAccountId').value = acc.id;
+            document.getElementById('productSelect').value = acc.productName;
+            document.getElementById('email').value = acc.email;
+            document.getElementById('password').value = acc.password || '';
+            document.getElementById('subscriptionName').value = acc.subscriptionName || '';
+            document.getElementById('statusTag').value = acc.statusTag || 'Free';
+            document.getElementById('accountType').value = acc.accountType || 'Trial';
+            document.getElementById('method').value = acc.method || '';
+            document.getElementById('customMethod').value = acc.customMethod || '';
+            document.getElementById('cardId').value = acc.cardId || '';
+            document.getElementById('cardExpiry').value = acc.cardExpiry || '';
+            document.getElementById('cardCvc').value = acc.cardCvc || '';
+            document.getElementById('claimedDate').value = acc.claimedDate || '';
+            document.getElementById('durationValue').value = acc.durationValue || '';
+            document.getElementById('durationUnit').value = acc.durationUnit || 'days';
+            document.getElementById('accountNumber').value = acc.accountNumber || '';
+            document.getElementById('username').value = acc.username || '';
+            document.getElementById('note').value = acc.note || '';
+            document.getElementById('modalTitle').innerText = 'Edit Account';
+            
+            updateExpiryInfo();
+            openModal('accountModal');
+        }
+
+        document.getElementById('accountForm')?.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            let productName = document.getElementById('productSelect').value;
+            const newProduct = document.getElementById('newProductInput').value.trim();
+            
+            if (newProduct) {
+                productName = newProduct;
+                if (!products.includes(productName)) {
+                    products.push(productName);
+                    saveProducts();
+                    renderProducts();
+                }
+            }
+            
+            if (!productName) {
+                showToast('Please select or add a product', 'error');
+                return;
+            }
+            
+            const email = document.getElementById('email').value;
+            if (!email) {
+                showToast('Email is required', 'error');
+                return;
+            }
+            
+            const editId = document.getElementById('editAccountId').value;
+            const duplicate = accounts.some(acc => 
+                acc.productName === productName && 
+                acc.email === email && 
+                acc.id !== editId
+            );
+            
+            if (duplicate) {
+                showToast('This email is already used for this product!', 'error');
+                return;
+            }
+            
+            const method = document.getElementById('method').value;
+            const customMethod = document.getElementById('customMethod').value;
+            const finalMethod = method === 'Custom' && customMethod ? customMethod : method;
+            
+            const claimedDate = document.getElementById('claimedDate').value;
+            const durationValue = parseInt(document.getElementById('durationValue').value) || 0;
+            const durationUnit = document.getElementById('durationUnit').value;
+            const expiredDate = getExpiryDate(claimedDate, durationValue, durationUnit);
+            
+            const accountData = {
+                id: editId || Date.now().toString(),
+                productName: productName,
+                email: email,
+                password: document.getElementById('password').value,
+                subscriptionName: document.getElementById('subscriptionName').value,
+                statusTag: document.getElementById('statusTag').value,
+                accountType: document.getElementById('accountType').value,
+                method: finalMethod,
+                customMethod: customMethod,
+                cardId: document.getElementById('cardId').value,
+                cardExpiry: document.getElementById('cardExpiry').value,
+                cardCvc: document.getElementById('cardCvc').value,
+                claimedDate: claimedDate,
+                durationValue: durationValue,
+                durationUnit: durationUnit,
+                expiredDate: expiredDate,
+                accountNumber: document.getElementById('accountNumber').value,
+                username: document.getElementById('username').value,
+                note: document.getElementById('note').value,
+                addedTime: editId ? 
+                    (accounts.find(a => a.id === editId)?.addedTime || new Date().toLocaleString()) : 
+                    new Date().toLocaleString()
+            };
+            
+            if (editId) {
+                const index = accounts.findIndex(a => a.id === editId);
+                if (index !== -1) accounts[index] = accountData;
+                showToast('Account updated successfully!', 'success');
+            } else {
+                accounts.push(accountData);
+                showToast('Account added successfully!', 'success');
+            }
+            
+            saveAccounts();
+            closeModal('accountModal');
+            
+            if (currentProduct && currentProduct === productName) {
+                viewProduct(currentProduct);
+            } else {
+                renderProducts();
+            }
+        });
+
+        document.getElementById('productForm')?.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const newProduct = document.getElementById('productName').value.trim();
+            
+            if (!newProduct) {
+                showToast('Please enter a product name', 'error');
+                return;
+            }
+            
+            if (products.includes(newProduct)) {
+                showToast('Product already exists!', 'error');
+                return;
+            }
+            
+            products.push(newProduct);
+            saveProducts();
+            renderProducts();
+            closeModal('productModal');
+            document.getElementById('productForm').reset();
+            showToast(`Product "${newProduct}" created!`, 'success');
+        });
+
+        function updateExpiryInfo() {
+            const claimedDate = document.getElementById('claimedDate').value;
+            const durationValue = parseInt(document.getElementById('durationValue').value);
+            const durationUnit = document.getElementById('durationUnit').value;
+            
+            if (claimedDate && durationValue) {
+                const expiryDate = getExpiryDate(claimedDate, durationValue, durationUnit);
+                const daysLeft = calculateDaysLeft(expiryDate);
+                document.getElementById('expiryInfo').value = `Expires: ${expiryDate} (${daysLeft} days left)`;
+            } else {
+                document.getElementById('expiryInfo').value = 'Enter claimed date and duration';
+            }
+        }
+
+        function deleteAccount(accountId) {
+            if (confirm('Are you sure you want to delete this account?')) {
+                accounts = accounts.filter(a => a.id !== accountId);
+                saveAccounts();
+                if (currentProduct) viewProduct(currentProduct);
+                else renderProducts();
+                showToast('Account deleted', 'success');
+            }
+        }
+
+        function deleteProduct(productName) {
+            if (confirm(`Delete "${productName}" and all its accounts? This cannot be undone.`)) {
+                products = products.filter(p => p !== productName);
+                accounts = accounts.filter(a => a.productName !== productName);
+                saveProducts();
+                saveAccounts();
+                renderProducts();
+                if (currentProduct === productName) backToProducts();
+                showToast(`Product "${productName}" deleted`, 'success');
+            }
+        }
+
+        function backToProducts() {
+            currentProduct = null;
+            document.getElementById('productsView').style.display = 'block';
+            document.getElementById('detailView').style.display = 'none';
+            renderProducts();
+        }
+
+        function exportData() {
+            const data = {
+                products: products,
+                accounts: accounts,
+                exportDate: new Date().toISOString(),
+                version: '1.0'
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `premium_vault_backup_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Data exported successfully!', 'success');
+        }
+
+        function importData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'application/json';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const data = JSON.parse(event.target.result);
+                        if (data.products) products = data.products;
+                        if (data.accounts) accounts = data.accounts;
+                        saveProducts();
+                        saveAccounts();
+                        renderProducts();
+                        showToast('Data imported successfully!', 'success');
+                    } catch (err) {
+                        showToast('Invalid file format', 'error');
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+
+        function copyToClipboard(text) {
+            if (!text) {
+                showToast('Nothing to copy', 'error');
+                return;
+            }
+            navigator.clipboard.writeText(text);
+            showToast('Copied to clipboard!', 'success');
+        }
+
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.background = type === 'error' ? '#f44336' : '#4fc3f7';
+            toast.style.color = '#0a0a0f';
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'flex';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        function setupEventListeners() {
+            document.getElementById('addProductBtn')?.addEventListener('click', () => openModal('productModal'));
+            document.getElementById('exportBtn')?.addEventListener('click', exportData);
+            document.getElementById('importBtn')?.addEventListener('click', importData);
+            document.getElementById('backBtn')?.addEventListener('click', backToProducts);
+            document.getElementById('creatorLink')?.addEventListener('click', (e) => {
+                e.preventDefault();
+                window.open('tg://resolve?domain=william815');
+            });
+            
+            document.getElementById('claimedDate')?.addEventListener('change', updateExpiryInfo);
+            document.getElementById('durationValue')?.addEventListener('input', updateExpiryInfo);
+            document.getElementById('durationUnit')?.addEventListener('change', updateExpiryInfo);
+            
+            window.onclick = (e) => {
+                if (e.target.classList.contains('modal')) e.target.style.display = 'none';
+            };
+        }
+
+        // Make functions global
+        window.viewProduct = viewProduct;
+        window.openAddAccountModal = openAddAccountModal;
+        window.deleteProduct = deleteProduct;
+        window.deleteAccount = deleteAccount;
+        window.editAccount = editAccount;
+        window.toggleAccountDetails = toggleAccountDetails;
+        window.copyToClipboard = copyToClipboard;
+        window.closeModal = closeModal;
+        window.renderAccountList = renderAccountList;
+        window.backToProducts = backToProducts;
+        window.changeSort = changeSort;
+    </script>
 </body>
-                        </html>
+</html>
